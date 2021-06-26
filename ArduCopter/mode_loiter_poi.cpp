@@ -9,6 +9,24 @@
 // loiter_init - initialise loiter controller
 bool ModeLoiter_POI::init(bool ignore_checks)
 {
+    bool isExist = false;
+
+    // Find MAV_CMD_DO_SET_ROI and set ROI position by command
+    uint16_t mission_count = copter.mode_auto.mission.num_commands();
+    for(uint16_t i=0 ; i < mission_count ; i++) {
+        AP_Mission::Mission_Command cmd;
+        if(copter.mode_auto.mission.get_next_do_cmd(i, cmd)) {
+            if(cmd.id == MAV_CMD_DO_SET_ROI) {
+                auto_yaw.set_roi(cmd.content.location);
+                auto_yaw.set_mode(AUTO_YAW_ROI);
+                isExist = true;
+                break;
+            }
+        }
+    }
+    // Do not change to this mode when MAV_CMD_DO_SET_ROI is not exist
+    if(!isExist) return false;
+
     if (!copter.failsafe.radio) {
         float target_roll, target_pitch;
         // apply SIMPLE mode transform to pilot inputs
@@ -29,12 +47,6 @@ bool ModeLoiter_POI::init(bool ignore_checks)
     if (!pos_control->is_active_z()) {
         pos_control->init_z_controller();
     }
-
-    poi_location.alt = 0;
-    poi_location.lat = (int32_t)(34.8411778 * 1.0E+7);
-    poi_location.lng = (int32_t)(136.2155248 * 1.0E+7);
-    auto_yaw.set_roi(poi_location);
-    auto_yaw.set_mode(AUTO_YAW_ROI);
 
     return true;
 }
