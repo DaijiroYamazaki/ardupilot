@@ -1723,7 +1723,7 @@ protected:
 
 private:
 
-    // Location poi_location{};      // Waypoint location
+    Location poi_location{};      // Waypoint location
 
 #if PRECISION_LANDING == ENABLED
     bool _precision_loiter_enabled;

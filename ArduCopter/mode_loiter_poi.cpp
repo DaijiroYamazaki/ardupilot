@@ -17,8 +17,7 @@ bool ModeLoiter_POI::init(bool ignore_checks)
         AP_Mission::Mission_Command cmd;
         if(copter.mode_auto.mission.get_next_do_cmd(i, cmd)) {
             if(cmd.id == MAV_CMD_DO_SET_ROI) {
-                auto_yaw.set_roi(cmd.content.location);
-                auto_yaw.set_mode(AUTO_YAW_ROI);
+                poi_location = cmd.content.location;
                 isExist = true;
                 break;
             }
@@ -151,6 +150,8 @@ void ModeLoiter_POI::run()
         loiter_nav->update();
 
         // call attitude controller
+        auto_yaw.set_roi(poi_location);
+        auto_yaw.set_mode(AUTO_YAW_ROI);
         attitude_control->input_thrust_vector_heading(loiter_nav->get_thrust_vector(), auto_yaw.yaw(), auto_yaw.rate_cds());
         break;
 
