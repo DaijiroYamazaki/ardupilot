@@ -179,7 +179,7 @@ void ModeLoiter_POI::run()
         loiter_nav->update();
 
         // AUTO YAW control enabled on over 3.0m from POI point
-        if(3.0 < copter.current_loc.get_distance(poi_location)) {
+        if(g.loiterpoi_activate_distance < copter.current_loc.get_distance(poi_location)) {
             auto_yaw.set_roi(poi_location);
             auto_yaw.set_mode(AUTO_YAW_ROI);
         }

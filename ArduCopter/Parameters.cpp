@@ -484,6 +484,8 @@ const AP_Param::Info Copter::var_info[] = {
     GSCALAR(acro_rp_expo,  "ACRO_RP_EXPO",    ACRO_RP_EXPO_DEFAULT),
 #endif
 
+    GSCALAR(loiterpoi_activate_distance, "LOITERPOI_DIST", LOITERPOI_DIST_DEFAULT),
+
     // variables not in the g class which contain EEPROM saved variables
 
 #if CAMERA == ENABLED
