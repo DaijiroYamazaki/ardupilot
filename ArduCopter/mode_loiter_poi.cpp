@@ -150,8 +150,7 @@ void ModeLoiter_POI::run()
         loiter_nav->update();
 
         // call attitude controller
-        auto_yaw.set_roi(poi_location);
-        auto_yaw.set_mode(AUTO_YAW_ROI);
+        auto_yaw.set_mode(AUTO_YAW_HOLD);
         attitude_control->input_thrust_vector_heading(loiter_nav->get_thrust_vector(), auto_yaw.yaw(), auto_yaw.rate_cds());
         break;
 
@@ -178,6 +177,15 @@ void ModeLoiter_POI::run()
 
         // run loiter controller
         loiter_nav->update();
+
+        // AUTO YAW control enabled on over 3.0m from POI point
+        if(3.0 < copter.current_loc.get_distance(poi_location)) {
+            auto_yaw.set_roi(poi_location);
+            auto_yaw.set_mode(AUTO_YAW_ROI);
+        }
+        else {
+            auto_yaw.set_mode(AUTO_YAW_HOLD);
+        }
 
         // call attitude controller
         attitude_control->input_thrust_vector_heading(loiter_nav->get_thrust_vector(), auto_yaw.yaw(), auto_yaw.rate_cds());
