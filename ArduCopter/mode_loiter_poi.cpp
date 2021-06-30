@@ -9,6 +9,23 @@
 // loiter_init - initialise loiter controller
 bool ModeLoiter_POI::init(bool ignore_checks)
 {
+    bool isExist = false;
+
+    // Find MAV_CMD_DO_SET_ROI and set ROI position by command
+    uint16_t mission_count = copter.mode_auto.mission.num_commands();
+    for(uint16_t i=0 ; i < mission_count ; i++) {
+        AP_Mission::Mission_Command cmd;
+        if(copter.mode_auto.mission.get_next_do_cmd(i, cmd)) {
+            if(cmd.id == MAV_CMD_DO_SET_ROI) {
+                poi_location = cmd.content.location;
+                isExist = true;
+                break;
+            }
+        }
+    }
+    // Do not change to this mode when MAV_CMD_DO_SET_ROI is not exist
+    if(!isExist) return false;
+
     if (!copter.failsafe.radio) {
         float target_roll, target_pitch;
         // apply SIMPLE mode transform to pilot inputs
@@ -29,12 +46,6 @@ bool ModeLoiter_POI::init(bool ignore_checks)
     if (!pos_control->is_active_z()) {
         pos_control->init_z_controller();
     }
-
-    poi_location.alt = 0;
-    poi_location.lat = (int32_t)(34.8411778 * 1.0E+7);
-    poi_location.lng = (int32_t)(136.2155248 * 1.0E+7);
-    auto_yaw.set_roi(poi_location);
-    auto_yaw.set_mode(AUTO_YAW_ROI);
 
     return true;
 }
@@ -139,6 +150,7 @@ void ModeLoiter_POI::run()
         loiter_nav->update();
 
         // call attitude controller
+        auto_yaw.set_mode(AUTO_YAW_HOLD);
         attitude_control->input_thrust_vector_heading(loiter_nav->get_thrust_vector(), auto_yaw.yaw(), auto_yaw.rate_cds());
         break;
 
@@ -165,6 +177,15 @@ void ModeLoiter_POI::run()
 
         // run loiter controller
         loiter_nav->update();
+
+        // AUTO YAW control enabled on over 3.0m from POI point
+        if(g.loiterpoi_activate_distance < copter.current_loc.get_distance(poi_location)) {
+            auto_yaw.set_roi(poi_location);
+            auto_yaw.set_mode(AUTO_YAW_ROI);
+        }
+        else {
+            auto_yaw.set_mode(AUTO_YAW_HOLD);
+        }
 
         // call attitude controller
         attitude_control->input_thrust_vector_heading(loiter_nav->get_thrust_vector(), auto_yaw.yaw(), auto_yaw.rate_cds());
