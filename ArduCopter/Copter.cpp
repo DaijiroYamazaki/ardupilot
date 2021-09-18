@@ -596,6 +596,19 @@ void Copter::init_simple_bearing()
     if (should_log(MASK_LOG_ANY)) {
         Log_Write_Data(LogDataID::INIT_SIMPLE_BEARING, ahrs.yaw_sensor);
     }
+
+    simple_roi_enable = false;
+    uint16_t mission_count = mode_auto.mission.num_commands();
+    for (uint16_t i=0 ; i < mission_count ; i++) {
+        AP_Mission::Mission_Command cmd;
+        if (mode_auto.mission.get_next_do_cmd(i, cmd)) {
+            if (cmd.id == MAV_CMD_DO_SET_ROI) {
+                simple_roi_enable = true;
+                simple_roi_target = cmd.content.location;
+                break;
+            }
+        }
+    }
 }
 
 // update_simple_mode - rotates pilot input if we are in simple mode

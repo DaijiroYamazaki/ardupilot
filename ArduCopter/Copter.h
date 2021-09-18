@@ -431,6 +431,9 @@ private:
     float super_simple_cos_yaw;
     float super_simple_sin_yaw;
 
+    bool simple_roi_enable;
+    Location simple_roi_target;
+
     // Stores initial bearing when armed - initial simple bearing is modified in super simple mode so not suitable
     int32_t initial_armed_bearing;
 

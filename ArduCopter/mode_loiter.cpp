@@ -169,7 +169,14 @@ void ModeLoiter::run()
         loiter_nav->update();
 
         // call attitude controller
-        attitude_control->input_thrust_vector_rate_heading(loiter_nav->get_thrust_vector(), target_yaw_rate);
+        if ((copter.simple_mode != Copter::SimpleMode::NONE) && (copter.simple_roi_enable)) {
+            auto_yaw.set_roi(copter.simple_roi_target);
+            auto_yaw.set_mode(AUTO_YAW_ROI);
+            attitude_control->input_thrust_vector_heading(loiter_nav->get_thrust_vector(), auto_yaw.yaw(), auto_yaw.rate_cds());
+        }
+        else {
+            attitude_control->input_thrust_vector_rate_heading(loiter_nav->get_thrust_vector(), target_yaw_rate);
+        }
 
         // get avoidance adjusted climb rate
         target_climb_rate = get_avoidance_adjusted_climbrate(target_climb_rate);
